@@ -45,7 +45,7 @@ export const addressCheck = vine.object({
   state: vine.string().minLength(3),
   city: vine.string().minLength(3),
   area: vine.string().minLength(5),
-  house_no: vine.string().minLength(5),
+  house_no: vine.string().minLength(1),
   pincode: vine.string().minLength(3),
 });
 

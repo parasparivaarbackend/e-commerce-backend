@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 import { UserModel } from "../model/user.model.js";
-import { SendMail } from "../utils/EmailHandler.js";
+import { SendMail, SendMailTemplate } from "../utils/EmailHandler.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ImageUpload, deleteImage } from "../utils/ImageHandler.js";
 
@@ -84,16 +84,26 @@ const SendOtp = asyncHandler(async (req, res) => {
     });
   }
   const OTP = Math.floor(1000 + Math.random() * 9000);
-  const expire = Date.now() + 1000 * 60 * 5;
+  const min = 5;
+  const expire = Date.now() + 1000 * 60 * min;
   emailToOTP[email] = { OTP, expire };
 
-  const ChangePasswordOtp = {
-    email,
-    expire,
-    Sub: "Reset password",
-    text: `your requested otp reset ,please do not share otp \n ${OTP}  \n otp is valid 5 min `,
+  // const ChangePasswordOtp = {
+  //   email,
+  //   expire,
+  //   Sub: "Reset password",
+  //   text: `your requested otp reset ,please do not share otp \n ${OTP}  \n otp is valid 5 min `,
+  // };
+
+  const item = { email, Sub: "Reset password" };
+
+  const template = {
+    url: "SendOTP.ejs",
+    userName: find.name,
+    OTP,
+    min,
   };
-  SendMail(ChangePasswordOtp);
+  await SendMailTemplate(item, template);
 
   return res.status(200).json({
     message: "OTP Sent",
@@ -133,9 +143,16 @@ const newPassword = asyncHandler(async (req, res) => {
 
   delete emailToOTP[email];
 
-  return res.status(200).json({
+  res.status(200).json({
     message: "password Created successful",
   });
+  const item = { email, Sub: "Password Reset Confirmation" };
+  const template = {
+    url: "ResetPasswordConfirmation.ejs",
+    userName: find.name,
+  };
+  SendMailTemplate(item, template);
+  return;
 });
 
 const CrateNewPassword = asyncHandler(async (req, res) => {
